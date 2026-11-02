@@ -1,0 +1,216 @@
+:root {
+    --ink: #1f2933;
+    --muted: #61707d;
+    --accent: #2f6f5e;
+    --accent-soft: #e3f1ec;
+    --danger: #a33a2b;
+    --danger-soft: #fbe9e6;
+    --line: #dde3e8;
+    --paper: #fbfaf7;
+    font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+}
+
+body {
+    margin: 0;
+}
+
+main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+}
+
+a {
+    color: var(--accent);
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    background: var(--accent);
+}
+
+.topbar a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 1.25rem;
+}
+
+.topbar .brand {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-left: 0;
+}
+
+h1 {
+    margin-top: 0.5rem;
+}
+
+.muted, .byline {
+    color: var(--muted);
+}
+
+.flash {
+    padding: 0.6rem 0.9rem;
+    border-radius: 6px;
+}
+
+.flash.notice {
+    background: var(--accent-soft);
+}
+
+.flash.error, .field-error {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.field-error {
+    padding: 0.3rem 0.5rem;
+    margin: 0.2rem 0 0;
+}
+
+table.grid {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+table.grid th, table.grid td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--line);
+}
+
+tr.overdue td {
+    background: var(--danger-soft);
+}
+
+.pill {
+    display: inline-block;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+.pill.ok {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.pill.none {
+    background: var(--line);
+    color: var(--muted);
+}
+
+button, .button {
+    font: inherit;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+button.secondary {
+    background: #fff;
+    color: var(--accent);
+}
+
+button.link {
+    background: none;
+    border: none;
+    color: var(--danger);
+    padding: 0;
+    text-decoration: underline;
+}
+
+form.inline, .actions form {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+form.stacked {
+    display: grid;
+    gap: 0.35rem;
+    max-width: 420px;
+}
+
+form.stacked button {
+    margin-top: 0.8rem;
+    justify-self: start;
+}
+
+input, select {
+    font: inherit;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+}
+
+.search {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.search input {
+    flex: 1;
+}
+
+.pager {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.3rem 1rem;
+}
+
+.facts dt {
+    color: var(--muted);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.stats > div {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.8rem;
+}
+
+.stat {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.reservations li {
+    margin-bottom: 0.4rem;
+}
+
+.balance {
+    font-size: 1.1rem;
+}

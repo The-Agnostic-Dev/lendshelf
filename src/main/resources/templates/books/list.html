@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Catalogue')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+    <div th:replace="~{fragments :: flash}"></div>
+    <h1>Catalogue</h1>
+
+    <form class="search" th:action="@{/books}" method="get">
+        <input type="search" name="q" th:value="${q}" placeholder="Search by title or author" aria-label="Search">
+        <button type="submit">Search</button>
+        <a th:if="${!#strings.isEmpty(q)}" th:href="@{/books}">Clear</a>
+    </form>
+
+    <p class="muted" id="result-count">
+        <span th:text="${page.numberOfElements}">0</span> titles
+        <span th:if="${!#strings.isEmpty(q)}" th:text="|matching &quot;${q}&quot;|"></span>
+    </p>
+
+    <table class="grid" th:if="${page.hasContent()}">
+        <thead>
+        <tr><th>Title</th><th>Author</th><th>Year</th><th>Genre</th><th>On shelf</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="book : ${page.content}">
+            <td><a th:href="@{/books/{id}(id=${book.id})}" th:text="${book.title}">Title</a></td>
+            <td th:text="${book.author}">Author</td>
+            <td th:text="${book.publishedYear}">1999</td>
+            <td th:text="${book.genre}">Fiction</td>
+            <td>
+                <span th:if="${available[book.id] > 0}" class="pill ok" th:text="${available[book.id]}">1</span>
+                <span th:unless="${available[book.id] > 0}" class="pill none">All out</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <p th:unless="${page.hasContent()}">No books match your search.</p>
+
+    <nav class="pager" th:if="${page.totalPages > 1}" aria-label="Pages">
+        <a th:if="${page.hasPrevious()}" th:href="@{/books(q=${q}, page=${page.number})}">&larr; Previous</a>
+        <th:block th:each="i : ${#numbers.sequence(1, page.totalPages)}">
+            <strong th:if="${i == page.number + 1}" th:text="${i}">1</strong>
+            <a th:unless="${i == page.number + 1}" th:href="@{/books(q=${q}, page=${i})}" th:text="${i}">2</a>
+        </th:block>
+        <a th:if="${page.hasNext()}" th:href="@{/books(q=${q}, page=${page.number + 1})}">Next &rarr;</a>
+    </nav>
+</main>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head(${book.title})}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+    <div th:replace="~{fragments :: flash}"></div>
+    <p><a th:href="@{/books}">&larr; Back to catalogue</a></p>
+    <h1 th:text="${book.title}">Title</h1>
+    <p class="byline">by <span th:text="${book.author}">Author</span>,
+        <span th:text="${book.publishedYear}">1999</span></p>
+
+    <dl class="facts">
+        <dt>Genre</dt><dd th:text="${book.genre}">Fiction</dd>
+        <dt>ISBN</dt><dd th:text="${book.isbn}">978</dd>
+        <dt>Availability</dt>
+        <dd id="availability"><span th:text="${availableCount}">1</span> of <span th:text="${#lists.size(copies)}">2</span> copies available</dd>
+        <dt>Waiting list</dt>
+        <dd th:text="${#lists.isEmpty(queue)} ? 'Nobody waiting' : ${#lists.size(queue)} + ' waiting'">Nobody waiting</dd>
+    </dl>
+
+    <h2>Copies</h2>
+    <table class="grid">
+        <thead><tr><th>Barcode</th><th>Status</th></tr></thead>
+        <tbody>
+        <tr th:each="copy : ${copies}">
+            <td th:text="${copy.barcode}">300101</td>
+            <td th:text="${copy.status.label}">On shelf</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Lend or reserve</h2>
+    <form class="inline" method="post">
+        <label for="memberId">Member</label>
+        <select id="memberId" name="memberId" required>
+            <option value="">Choose a member</option>
+            <option th:each="m : ${members}" th:value="${m.id}" th:text="|${m.name} (${m.cardNumber})|">Name</option>
+        </select>
+        <button type="submit" th:formaction="@{/books/{id}/borrow(id=${book.id})}">Borrow</button>
+        <button type="submit" class="secondary" th:formaction="@{/books/{id}/reserve(id=${book.id})}">Reserve</button>
+    </form>
+</main>
+</body>
+</html>

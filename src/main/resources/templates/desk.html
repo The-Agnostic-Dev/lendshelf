@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Circulation desk')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+    <div th:replace="~{fragments :: flash}"></div>
+    <h1>Circulation desk</h1>
+
+    <section th:unless="${member}">
+        <p>Scan or type the member's library card number to start.</p>
+        <form class="inline" th:action="@{/desk/member}" method="post">
+            <input type="text" name="cardNumber" placeholder="LS-10001" aria-label="Card number" required autofocus>
+            <button type="submit">Start</button>
+        </form>
+    </section>
+
+    <section th:if="${member}">
+        <p id="serving">Serving <strong th:text="${member.name}">Name</strong>
+            (<span th:text="${member.cardNumber}">LS-10001</span>)</p>
+        <form class="inline" th:action="@{/desk/checkout}" method="post">
+            <input type="text" name="barcode" placeholder="Copy barcode" aria-label="Copy barcode" required autofocus>
+            <button type="submit">Check out</button>
+        </form>
+
+        <h2>Currently on loan</h2>
+        <ul>
+            <li th:each="loan : ${loans}">
+                <span th:text="${loan.copy.book.title}">Title</span>, due
+                <span th:text="${#temporals.format(loan.dueOn, 'd MMM yyyy')}">1 Jan</span>
+            </li>
+            <li th:if="${#lists.isEmpty(loans)}" class="muted">Nothing on loan.</li>
+        </ul>
+
+        <form th:action="@{/desk/finish}" method="post">
+            <button type="submit" class="secondary">Done, next member</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

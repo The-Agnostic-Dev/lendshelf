@@ -1,0 +1,8 @@
+services:
+  lendshelf:
+    build: .
+    ports:
+      - "5108:5108"
+    environment:
+      PORT: "5108"
+      TZ: ${TZ:-UTC}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Register a member')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+    <h1>Register a member</h1>
+    <form class="stacked" th:action="@{/members}" th:object="${form}" method="post">
+        <label for="name">Full name</label>
+        <input id="name" type="text" th:field="*{name}" required maxlength="80">
+        <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+
+        <label for="email">Email</label>
+        <input id="email" type="email" th:field="*{email}" required>
+        <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+
+        <label for="phone">Phone <span class="muted">(optional)</span></label>
+        <input id="phone" type="tel" th:field="*{phone}" required>
+        <p class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+
+        <button type="submit">Create library card</button>
+    </form>
+</main>
+</body>
+</html>

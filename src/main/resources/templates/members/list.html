@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Members')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+    <div th:replace="~{fragments :: flash}"></div>
+    <div class="title-row">
+        <h1>Members</h1>
+        <a class="button" th:href="@{/members/new}">Register a member</a>
+    </div>
+    <table class="grid">
+        <thead><tr><th>Name</th><th>Card</th><th>Email</th><th>Joined</th></tr></thead>
+        <tbody>
+        <tr th:each="m : ${members}">
+            <td><a th:href="@{/members/{id}(id=${m.id})}" th:text="${m.name}">Name</a></td>
+            <td th:text="${m.cardNumber}">LS-10001</td>
+            <td th:text="${m.email}">a@b.c</td>
+            <td th:text="${#temporals.format(m.joinedOn, 'd MMM yyyy')}">1 Jan 2026</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

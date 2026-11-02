@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head(${member.name})}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+    <div th:replace="~{fragments :: flash}"></div>
+    <h1 th:text="${member.name}">Name</h1>
+    <p class="byline">Card <strong th:text="${member.cardNumber}">LS-10001</strong>
+        &middot; <span th:text="${member.email}">a@b.c</span>
+        <span th:if="${member.phone}" th:text="'&middot; ' + ${member.phone}"></span></p>
+
+    <p class="balance" id="outstanding">Late fees owed:
+        <strong th:text="'$' + ${#numbers.formatDecimal(outstanding, 1, 'COMMA', 2, 'POINT')}">$0.00</strong></p>
+
+    <h2>On loan</h2>
+    <table class="grid" id="current-loans" th:if="${!#lists.isEmpty(currentLoans)}">
+        <thead><tr><th>Title</th><th>Barcode</th><th>Borrowed</th><th>Due</th><th>Renewals</th><th>Fee</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="loan : ${currentLoans}" th:classappend="${loan.isOverdue(today)} ? 'overdue'">
+            <td th:text="${loan.copy.book.title}">Title</td>
+            <td th:text="${loan.copy.barcode}">300101</td>
+            <td th:text="${#temporals.format(loan.borrowedOn, 'd MMM yyyy')}">1 Jan</td>
+            <td class="due" th:text="${#temporals.format(loan.dueOn, 'd MMM yyyy')}">15 Jan</td>
+            <td th:text="|${loan.renewals} of ${maxRenewals}|">0 of 2</td>
+            <td th:text="'$' + ${#numbers.formatDecimal(fees[loan.id], 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+            <td class="actions">
+                <form method="post" th:action="@{/loans/{id}/renew(id=${loan.id})}">
+                    <input type="hidden" name="memberId" th:value="${member.id}">
+                    <button type="submit" class="secondary">Renew</button>
+                </form>
+                <form method="post" th:action="@{/loans/{id}/return(id=${loan.copy.id})}">
+                    <input type="hidden" name="memberId" th:value="${member.id}">
+                    <button type="submit">Return</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(currentLoans)}" class="muted">Nothing on loan right now.</p>
+
+    <h2>Reservations</h2>
+    <ul class="reservations" th:if="${!#lists.isEmpty(reservations)}">
+        <li th:each="r : ${reservations}">
+            <strong th:text="${r.book.title}">Title</strong>
+            <span th:if="${r.status.name() == 'READY'}" class="pill ok">Ready to collect</span>
+            <span th:if="${r.status.name() == 'WAITING'}" class="queue-position" th:text="|Number ${r.queuePosition} in the queue|">Number 1 in the queue</span>
+            <form method="post" class="inline" th:action="@{/reservations/{id}/cancel(id=${r.id})}">
+                <input type="hidden" name="memberId" th:value="${member.id}">
+                <button type="submit" class="link">Cancel</button>
+            </form>
+        </li>
+    </ul>
+    <p th:if="${#lists.isEmpty(reservations)}" class="muted">No reservations.</p>
+
+    <h2>History</h2>
+    <table class="grid" th:if="${!#lists.isEmpty(pastLoans)}">
+        <thead><tr><th>Title</th><th>Borrowed</th><th>Returned</th><th>Fee</th></tr></thead>
+        <tbody>
+        <tr th:each="loan : ${pastLoans}">
+            <td th:text="${loan.copy.book.title}">Title</td>
+            <td th:text="${#temporals.format(loan.borrowedOn, 'd MMM yyyy')}">1 Jan</td>
+            <td th:text="${#temporals.format(loan.returnedOn, 'd MMM yyyy')}">10 Jan</td>
+            <td th:text="'$' + ${#numbers.formatDecimal(fees[loan.id], 1, 'COMMA', 2, 'POINT')}">$0.00</td>
+        </tr>
+        </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(pastLoans)}" class="muted">No past loans yet.</p>
+</main>
+</body>
+</html>

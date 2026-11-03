@@ -44,6 +44,15 @@ public class ReservationService {
         this.clock = clock;
     }
 
+    private void renumberWaiting(Long bookId) {
+        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByQueuePositionAsc(
+                bookId, ReservationStatus.WAITING);
+        for (int i = 0; i < waiting.size(); i++) {
+            waiting.get(i).setQueuePosition(i + 1);
+        }
+        reservations.saveAll(waiting);
+    }
+
     public Reservation reserve(Long memberId, Long bookId) {
         Member member = members.findById(memberId).orElseThrow(() -> new NotFoundException("Member", memberId));
         Book book = books.findById(bookId).orElseThrow(() -> new NotFoundException("Book", bookId));
@@ -69,12 +78,7 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservations.flush();
 
-        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByQueuePositionAsc(
-                reservation.getBook().getId(), ReservationStatus.WAITING);
-        for (int i = 0; i < waiting.size(); i++) {
-            waiting.get(i).setQueuePosition(i + 1);
-        }
-        reservations.saveAll(waiting);
+        renumberWaiting(reservation.getBook().getId());
 
         if (wasHoldingCopy) {
             copies.findByBookIdOrderByBarcode(reservation.getBook().getId()).stream()
@@ -95,6 +99,7 @@ public class ReservationService {
         if (next.isPresent()) {
             next.get().setStatus(ReservationStatus.READY);
             copy.setStatus(CopyStatus.ON_HOLD);
+            renumberWaiting(copy.getBook().getId());
         } else {
             copy.setStatus(CopyStatus.AVAILABLE);
         }

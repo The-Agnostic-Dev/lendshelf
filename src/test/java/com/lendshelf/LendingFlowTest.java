@@ -18,6 +18,7 @@ import com.lendshelf.service.LibraryException;
 import com.lendshelf.service.LoanService;
 import com.lendshelf.service.MemberService;
 import com.lendshelf.service.ReservationService;
+import com.lendshelf.repository.ReservationRepository;
 
 @SpringBootTest
 @Transactional
@@ -34,6 +35,9 @@ class LendingFlowTest {
 
     @Autowired
     MemberService members;
+
+    @Autowired
+    ReservationRepository reservationRepository;
 
     private Book findBook(String title) {
         return catalog.search(title, 0).getContent().stream()
@@ -127,12 +131,12 @@ class LendingFlowTest {
 
         reservations.cancel(r1.getId());
 
-        assertThat(r2.getQueuePosition()).isEqualTo(1);
-        assertThat(r3.getQueuePosition()).isEqualTo(2);
+        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(1);
+        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(2);
 
         reservations.cancel(r2.getId());
 
-        assertThat(r3.getQueuePosition()).isEqualTo(1);
+        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(1);
     }
 
     @Test
@@ -146,6 +150,6 @@ class LendingFlowTest {
 
         reservations.cancel(r1.getId());
 
-        assertThat(r2.getQueuePosition()).isEqualTo(1);
+        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(1);
     }
 }

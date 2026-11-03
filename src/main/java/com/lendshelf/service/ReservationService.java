@@ -71,15 +71,10 @@ public class ReservationService {
 
         List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(
                 reservation.getBook().getId(), ReservationStatus.WAITING);
-        List<Reservation> ready = reservations.findByBookIdAndStatusOrderByCreatedAt(
-                reservation.getBook().getId(), ReservationStatus.READY);
-        List<Reservation> remaining = new ArrayList<>(waiting);
-        remaining.addAll(ready);
-        remaining.sort(Comparator.comparingInt(Reservation::getQueuePosition));
-        for (int i = 0; i < remaining.size(); i++) {
-            remaining.get(i).setQueuePosition(i + 1);
+        for (int i = 0; i < waiting.size(); i++) {
+            waiting.get(i).setQueuePosition(i + 1);
         }
-        reservations.saveAll(remaining);
+        reservations.saveAll(waiting);
 
         if (wasHoldingCopy) {
             copies.findByBookIdOrderByBarcode(reservation.getBook().getId()).stream()

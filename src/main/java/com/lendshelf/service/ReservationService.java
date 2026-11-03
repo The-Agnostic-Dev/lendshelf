@@ -67,8 +67,8 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservations.flush();
 
-        List<Reservation> remaining = reservations.findByBookIdAndStatusOrderByQueuePosition(
-                reservation.getBook().getId(), ReservationStatus.WAITING);
+        List<Reservation> remaining = reservations.findByBookIdAndStatusInOrderByQueuePosition(
+                reservation.getBook().getId(), ACTIVE);
         for (int i = 0; i < remaining.size(); i++) {
             remaining.get(i).setQueuePosition(i + 1);
         }
@@ -117,7 +117,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> findByBook(Long bookId) {
-        return reservations.findByBookIdAndStatusOrderByQueuePosition(bookId, ReservationStatus.WAITING);
+        return reservations.findByBookIdAndStatusInOrderByQueuePosition(bookId, ACTIVE);
     }
 
     @Transactional(readOnly = true)

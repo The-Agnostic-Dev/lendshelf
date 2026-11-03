@@ -1,12 +1,14 @@
 package com.lendshelf.web;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.SessionScope;
 
 /**
  * The member currently being served at a circulation desk, so the librarian can scan
  * several books without re-entering the card number each time.
  */
 @Component
+@SessionScope
 public class DeskSession {
 
     private Long memberId;

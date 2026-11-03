@@ -12,6 +12,7 @@ import com.lendshelf.domain.Book;
 import com.lendshelf.domain.CopyStatus;
 import com.lendshelf.domain.Loan;
 import com.lendshelf.domain.Member;
+import com.lendshelf.domain.Reservation;
 import com.lendshelf.domain.ReservationStatus;
 import java.util.UUID;
 import com.lendshelf.service.CatalogService;

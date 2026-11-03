@@ -69,16 +69,12 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservations.flush();
 
-        List<Reservation> active = new ArrayList<>();
-        active.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
-                reservation.getBook().getId(), ReservationStatus.WAITING));
-        active.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
-                reservation.getBook().getId(), ReservationStatus.READY));
-        active.sort(Comparator.comparingInt(Reservation::getQueuePosition));
-        for (int i = 0; i < active.size(); i++) {
-            active.get(i).setQueuePosition(i + 1);
+        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByQueuePositionAsc(
+                reservation.getBook().getId(), ReservationStatus.WAITING);
+        for (int i = 0; i < waiting.size(); i++) {
+            waiting.get(i).setQueuePosition(i + 1);
         }
-        reservations.saveAll(active);
+        reservations.saveAll(waiting);
 
         if (wasHoldingCopy) {
             copies.findByBookIdOrderByBarcode(reservation.getBook().getId()).stream()

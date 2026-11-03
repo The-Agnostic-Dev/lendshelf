@@ -2,6 +2,7 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,17 @@ public class ReservationService {
         }
         boolean wasHoldingCopy = reservation.getStatus() == ReservationStatus.READY;
         reservation.setStatus(ReservationStatus.CANCELLED);
+
+        List<Reservation> remaining = new ArrayList<>();
+        remaining.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
+                reservation.getBook().getId(), ReservationStatus.WAITING));
+        remaining.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
+                reservation.getBook().getId(), ReservationStatus.READY));
+        remaining.sort((a, b) -> Integer.compare(a.getPosition(), b.getPosition()));
+        for (int i = 0; i < remaining.size(); i++) {
+            remaining.get(i).setPosition(i + 1);
+        }
+        reservations.saveAll(remaining);
 
         if (wasHoldingCopy) {
             copies.findByBookIdOrderByBarcode(reservation.getBook().getId()).stream()

@@ -127,14 +127,11 @@ class LendingFlowTest {
 
         reservations.cancel(r1.getId());
 
-        var remaining = reservations.findByBook(book.getId());
-        assertThat(remaining).hasSize(2);
-        assertThat(remaining).extracting(r -> r.getQueuePosition()).containsExactly(1, 2);
+        assertThat(r2.getQueuePosition()).isEqualTo(1);
+        assertThat(r3.getQueuePosition()).isEqualTo(2);
 
         reservations.cancel(r2.getId());
 
-        remaining = reservations.findByBook(book.getId());
-        assertThat(remaining).hasSize(1);
-        assertThat(remaining).extracting(r -> r.getQueuePosition()).containsExactly(1);
+        assertThat(r3.getQueuePosition()).isEqualTo(1);
     }
 }

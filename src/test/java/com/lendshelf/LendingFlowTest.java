@@ -133,12 +133,25 @@ class LendingFlowTest {
 
         reservations.cancel(r1.getId());
 
-        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(3);
-        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(4);
+        var waitingAfterFirstCancel = reservations.findByBook(book.getId());
+        assertThat(waitingAfterFirstCancel).hasSize(2);
+        assertThat(waitingAfterFirstCancel)
+            .filteredOn(r -> r.getId().equals(r2.getId()))
+            .singleElement()
+            .extracting(Reservation::getQueuePosition)
+            .isEqualTo(1);
+        assertThat(waitingAfterFirstCancel)
+            .filteredOn(r -> r.getId().equals(r3.getId()))
+            .singleElement()
+            .extracting(Reservation::getQueuePosition)
+            .isEqualTo(2);
 
         reservations.cancel(r2.getId());
 
-        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(3);
+        var waitingAfterSecondCancel = reservations.findByBook(book.getId());
+        assertThat(waitingAfterSecondCancel).hasSize(1);
+        assertThat(waitingAfterSecondCancel.getFirst().getQueuePosition()).isEqualTo(1);
+        assertThat(waitingAfterSecondCancel.getFirst().getId()).isEqualTo(r3.getId());
     }
 
     @Test
@@ -152,7 +165,10 @@ class LendingFlowTest {
 
         reservations.cancel(r1.getId());
 
-        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(3);
+        var waiting = reservations.findByBook(book.getId());
+        assertThat(waiting).hasSize(1);
+        assertThat(waiting.getFirst().getId()).isEqualTo(r2.getId());
+        assertThat(waiting.getFirst().getQueuePosition()).isEqualTo(1);
     }
 
     @Test
@@ -184,11 +200,34 @@ class LendingFlowTest {
             .hasSize(2);
         assertThat(waitingAfterCancel)
             .extracting(r -> r.getQueuePosition())
-            .containsExactlyInAnyOrder(1, 2);
+            .containsExactly(1, 2);
+        assertThat(waitingAfterCancel)
+            .extracting(Reservation::getId)
+            .containsExactly(new2.getId(), new3.getId());
+    }
 
-        var new2After = reservationRepository.findById(new2.getId()).orElseThrow();
-        var new3After = reservationRepository.findById(new3.getId()).orElseThrow();
-        assertThat(new2After.getQueuePosition()).isEqualTo(1);
-        assertThat(new3After.getQueuePosition()).isEqualTo(2);
+    @Test
+    void findByBookReturnsSequentialPositionsIgnoringStoredQueuePositions() {
+        Member first = members.register("Stale First", "stale1@example.com", null);
+        Member second = members.register("Stale Second", "stale2@example.com", null);
+        Book book = findBook("Half of a Yellow Sun");
+
+        var r1 = reservations.reserve(first.getId(), book.getId());
+        var r2 = reservations.reserve(second.getId(), book.getId());
+
+        // Set stored queuePosition to stale duplicate values
+        r1.setQueuePosition(10);
+        r2.setQueuePosition(10);
+        reservationRepository.save(r1);
+        reservationRepository.save(r2);
+
+        var waiting = reservations.findByBook(book.getId());
+        assertThat(waiting).hasSize(2);
+        assertThat(waiting)
+            .extracting(Reservation::getQueuePosition)
+            .containsExactly(1, 2);
+        assertThat(waiting)
+            .extracting(Reservation::getId)
+            .containsExactly(r1.getId(), r2.getId());
     }
 }

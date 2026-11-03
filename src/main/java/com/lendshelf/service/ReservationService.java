@@ -2,7 +2,6 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -68,8 +67,8 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservations.flush();
 
-        List<Reservation> remaining = reservations.findByBookIdAndStatusNotOrderByQueuePosition(
-                reservation.getBook().getId(), ReservationStatus.CANCELLED);
+        List<Reservation> remaining = reservations.findByBookIdAndStatusOrderByQueuePosition(
+                reservation.getBook().getId(), ReservationStatus.WAITING);
         for (int i = 0; i < remaining.size(); i++) {
             remaining.get(i).setQueuePosition(i + 1);
         }
@@ -118,7 +117,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> findByBook(Long bookId) {
-        return reservations.findByBookIdAndStatusNotOrderByQueuePosition(bookId, ReservationStatus.CANCELLED);
+        return reservations.findByBookIdAndStatusOrderByQueuePosition(bookId, ReservationStatus.WAITING);
     }
 
     @Transactional(readOnly = true)

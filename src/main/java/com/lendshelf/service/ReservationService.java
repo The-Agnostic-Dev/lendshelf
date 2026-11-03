@@ -2,6 +2,8 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -67,8 +69,13 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservations.flush();
 
-        List<Reservation> remaining = reservations.findByBookIdAndStatusInOrderByQueuePosition(
-                reservation.getBook().getId(), ACTIVE);
+        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(
+                reservation.getBook().getId(), ReservationStatus.WAITING);
+        List<Reservation> ready = reservations.findByBookIdAndStatusOrderByCreatedAt(
+                reservation.getBook().getId(), ReservationStatus.READY);
+        List<Reservation> remaining = new ArrayList<>(waiting);
+        remaining.addAll(ready);
+        remaining.sort(Comparator.comparingInt(Reservation::getQueuePosition));
         for (int i = 0; i < remaining.size(); i++) {
             remaining.get(i).setQueuePosition(i + 1);
         }
@@ -117,7 +124,12 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> findByBook(Long bookId) {
-        return reservations.findByBookIdAndStatusInOrderByQueuePosition(bookId, ACTIVE);
+        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.WAITING);
+        List<Reservation> ready = reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.READY);
+        List<Reservation> all = new ArrayList<>(waiting);
+        all.addAll(ready);
+        all.sort(Comparator.comparingInt(Reservation::getQueuePosition));
+        return all;
     }
 
     @Transactional(readOnly = true)

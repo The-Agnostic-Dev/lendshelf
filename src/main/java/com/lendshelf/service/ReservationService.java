@@ -67,12 +67,8 @@ public class ReservationService {
         boolean wasHoldingCopy = reservation.getStatus() == ReservationStatus.READY;
         reservation.setStatus(ReservationStatus.CANCELLED);
 
-        List<Reservation> remaining = new ArrayList<>();
-        remaining.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
-                reservation.getBook().getId(), ReservationStatus.WAITING));
-        remaining.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
-                reservation.getBook().getId(), ReservationStatus.READY));
-        remaining.sort((a, b) -> Integer.compare(a.getQueuePosition(), b.getQueuePosition()));
+        List<Reservation> remaining = reservations.findByBookIdAndStatusNotOrderByQueuePosition(
+                reservation.getBook().getId(), ReservationStatus.CANCELLED);
         for (int i = 0; i < remaining.size(); i++) {
             remaining.get(i).setQueuePosition(i + 1);
         }

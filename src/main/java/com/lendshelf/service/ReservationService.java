@@ -66,6 +66,7 @@ public class ReservationService {
         }
         boolean wasHoldingCopy = reservation.getStatus() == ReservationStatus.READY;
         reservation.setStatus(ReservationStatus.CANCELLED);
+        reservations.flush();
 
         List<Reservation> remaining = reservations.findByBookIdAndStatusNotOrderByQueuePosition(
                 reservation.getBook().getId(), ReservationStatus.CANCELLED);

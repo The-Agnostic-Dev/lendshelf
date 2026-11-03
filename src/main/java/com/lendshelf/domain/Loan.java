@@ -1,7 +1,7 @@
 package com.lendshelf.domain;
 
 import java.time.LocalDate;
-import java.time.Period;
+import java.time.temporal.ChronoUnit;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -54,7 +54,7 @@ public class Loan {
         if (!end.isAfter(dueOn)) {
             return 0;
         }
-        return Period.between(dueOn, end).getDays();
+        return ChronoUnit.DAYS.between(dueOn, end);
     }
 
     public void renew(LocalDate newDueOn) {

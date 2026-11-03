@@ -113,4 +113,46 @@ class LendingFlowTest {
 
         assertThat(loan.getCopy().getStatus()).isEqualTo(CopyStatus.ON_HOLD);
     }
+
+    @Test
+    void queuePositionsRenumberAfterCancellationAndHandoff() {
+        Member borrower1 = members.register("Borrower One", "b1@example.com", null);
+        Member borrower2 = members.register("Borrower Two", "b2@example.com", null);
+        Book book = findBook("Circe");
+        Loan loan1 = loans.borrow(borrower1.getId(), book.getId());
+        Loan loan2 = loans.borrow(borrower2.getId(), book.getId());
+
+        Member m1 = members.register("Queue One", "q1@example.com", null);
+        Member m2 = members.register("Queue Two", "q2@example.com", null);
+        Member m3 = members.register("Queue Three", "q3@example.com", null);
+        Member m4 = members.register("Queue Four", "q4@example.com", null);
+
+        var r1 = reservations.reserve(m1.getId(), book.getId());
+        var r2 = reservations.reserve(m2.getId(), book.getId());
+        var r3 = reservations.reserve(m3.getId(), book.getId());
+        var r4 = reservations.reserve(m4.getId(), book.getId());
+
+        reservations.cancel(r3.getId());
+
+        var m4Reservation = reservations.activeFor(m4.getId()).stream()
+                .filter(r -> r.getBook().getId().equals(book.getId()))
+                .findFirst().orElseThrow();
+        assertThat(m4Reservation.getQueuePosition()).isEqualTo(3);
+
+        loans.returnLoan(loan1.getId());
+        loans.returnLoan(loan2.getId());
+
+        var waiting = reservations.queueFor(book.getId()).stream()
+                .filter(r -> r.getStatus() == ReservationStatus.WAITING)
+                .toList();
+        assertThat(waiting).hasSize(1);
+        assertThat(waiting.get(0).getMember().getId()).isEqualTo(m4.getId());
+        assertThat(waiting.get(0).getQueuePosition()).isEqualTo(1);
+
+        var readyMembers = reservations.queueFor(book.getId()).stream()
+                .filter(r -> r.getStatus() == ReservationStatus.READY)
+                .map(r -> r.getMember().getId())
+                .toList();
+        assertThat(readyMembers).containsExactlyInAnyOrder(m1.getId(), m2.getId());
+    }
 }

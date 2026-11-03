@@ -121,7 +121,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> findByBook(Long bookId) {
-        return reservations.findByBookIdOrderByPositionAsc(bookId);
+        return reservations.findByBookIdAndStatusNotOrderByQueuePosition(bookId, ReservationStatus.CANCELLED);
     }
 
     @Transactional(readOnly = true)

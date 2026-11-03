@@ -44,9 +44,9 @@ public class ReservationService {
     }
 
     private void renumberWaiting(Long bookId) {
-        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByQueuePositionAsc(
+        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(
                 bookId, ReservationStatus.WAITING);
-        waiting.sort(Comparator.comparingInt(Reservation::getQueuePosition)
+        waiting.sort(Comparator.comparing(Reservation::getCreatedAt)
                 .thenComparing(Reservation::getId));
         for (int i = 0; i < waiting.size(); i++) {
             waiting.get(i).setQueuePosition(i + 1);

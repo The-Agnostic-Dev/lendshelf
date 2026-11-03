@@ -157,29 +157,12 @@ class LendingFlowTest {
 
     @Test
     void cancellingFirstWaitingAfterReadyExcludesReadyAndRenumbersWaiting() {
-        Book book = null;
+        Book book = findBook("A Brief History of Time");
+        Member dummyMember = members.register("Dummy " + UUID.randomUUID(), "dummy-" + UUID.randomUUID() + "@example.com", null);
+        Loan dummyLoan = loans.borrow(dummyMember.getId(), book.getId());
         final Reservation[] dummyHolder = new Reservation[1];
-        Member dummyMember = null;
-        int page = 0;
-        while (true) {
-            var pageContent = catalog.search("", page).getContent();
-            if (pageContent.isEmpty()) break;
-            for (Book candidate : pageContent) {
-                if (!reservations.findByBook(candidate.getId()).isEmpty()) continue;
-                Member m = members.register("Dummy " + UUID.randomUUID(), "dummy-" + UUID.randomUUID() + "@example.com", null);
-                try {
-                    dummyHolder[0] = reservations.reserve(m.getId(), candidate.getId());
-                    book = candidate;
-                    dummyMember = m;
-                    break;
-                } catch (LibraryException e) {
-                    // not all out, try next candidate
-                }
-            }
-            if (book != null) break;
-            page++;
-        }
-        assertThat(book).isNotNull();
+        dummyHolder[0] = reservations.reserve(dummyMember.getId(), book.getId());
+        assertThat(dummyHolder[0]).isNotNull();
 
         Member new1Member = members.register("New1 " + UUID.randomUUID(), "new1-" + UUID.randomUUID() + "@example.com", null);
         Member new2Member = members.register("New2 " + UUID.randomUUID(), "new2-" + UUID.randomUUID() + "@example.com", null);
@@ -188,17 +171,7 @@ class LendingFlowTest {
         var new2 = reservations.reserve(new2Member.getId(), book.getId());
         var new3 = reservations.reserve(new3Member.getId(), book.getId());
 
-        Loan loanToReturn = null;
-        for (Member member : members.all()) {
-            for (Loan loan : loans.currentLoans(member.getId())) {
-                if (loan.getCopy().getBook().getId().equals(book.getId())) {
-                    loanToReturn = loan;
-                    break;
-                }
-            }
-            if (loanToReturn != null) break;
-        }
-        assertThat(loanToReturn).isNotNull();
+        Loan loanToReturn = dummyLoan;
 
         loans.returnLoan(loanToReturn.getId());
 

@@ -64,7 +64,7 @@ public class ReservationService {
             throw new LibraryException("This reservation is no longer active.");
         }
         boolean wasHoldingCopy = reservation.getStatus() == ReservationStatus.READY;
-        int cancelledPosition = reservation.getPosition();
+        int cancelledPosition = reservation.getQueuePosition();
         reservation.setStatus(ReservationStatus.CANCELLED);
 
         List<Reservation> active = reservations.findByBookIdAndStatusOrderByCreatedAt(
@@ -72,8 +72,8 @@ public class ReservationService {
         active.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
                 reservation.getBook().getId(), ReservationStatus.READY));
         for (Reservation later : active) {
-            if (later.getPosition() > cancelledPosition) {
-                later.setPosition(later.getPosition() - 1);
+            if (later.getQueuePosition() > cancelledPosition) {
+                later.setQueuePosition(later.getQueuePosition() - 1);
                 reservations.save(later);
             }
         }

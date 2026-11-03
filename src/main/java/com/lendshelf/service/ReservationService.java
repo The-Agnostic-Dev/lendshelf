@@ -120,6 +120,11 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
+    public List<Reservation> findByBook(Long bookId) {
+        return reservations.findByBookIdOrderByPositionAsc(bookId);
+    }
+
+    @Transactional(readOnly = true)
     public long waitingCount() {
         return reservations.countByStatus(ReservationStatus.WAITING);
     }

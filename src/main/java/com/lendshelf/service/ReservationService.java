@@ -2,6 +2,7 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +46,8 @@ public class ReservationService {
     private void renumberWaiting(Long bookId) {
         List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByQueuePositionAsc(
                 bookId, ReservationStatus.WAITING);
+        waiting.sort(Comparator.comparingInt(Reservation::getQueuePosition)
+                .thenComparing(Reservation::getId));
         for (int i = 0; i < waiting.size(); i++) {
             waiting.get(i).setQueuePosition(i + 1);
         }
@@ -122,7 +125,11 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> findByBook(Long bookId) {
-        return reservations.findByBookIdAndStatusOrderByQueuePositionAsc(bookId, ReservationStatus.WAITING);
+        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByQueuePositionAsc(
+                bookId, ReservationStatus.WAITING);
+        waiting.sort(Comparator.comparingInt(Reservation::getQueuePosition)
+                .thenComparing(Reservation::getId));
+        return waiting;
     }
 
     @Transactional(readOnly = true)

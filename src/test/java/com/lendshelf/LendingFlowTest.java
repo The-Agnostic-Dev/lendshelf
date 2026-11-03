@@ -158,7 +158,7 @@ class LendingFlowTest {
     @Test
     void cancellingFirstWaitingAfterReadyExcludesReadyAndRenumbersWaiting() {
         Book book = null;
-        Reservation dummy = null;
+        final Reservation[] dummyHolder = new Reservation[1];
         Member dummyMember = null;
         int page = 0;
         while (true) {
@@ -168,7 +168,7 @@ class LendingFlowTest {
                 if (!reservations.findByBook(candidate.getId()).isEmpty()) continue;
                 Member m = members.register("Dummy " + UUID.randomUUID(), "dummy-" + UUID.randomUUID() + "@example.com", null);
                 try {
-                    dummy = reservations.reserve(m.getId(), candidate.getId());
+                    dummyHolder[0] = reservations.reserve(m.getId(), candidate.getId());
                     book = candidate;
                     dummyMember = m;
                     break;
@@ -206,7 +206,7 @@ class LendingFlowTest {
 
         var waitingAfterCancel = reservations.findByBook(book.getId());
         assertThat(waitingAfterCancel)
-            .noneMatch(r -> r.getId().equals(dummy.getId()))
+            .noneMatch(r -> r.getId().equals(dummyHolder[0].getId()))
             .allMatch(r -> r.getStatus() == ReservationStatus.WAITING)
             .hasSize(2);
         assertThat(waitingAfterCancel)

@@ -1,6 +1,5 @@
 package com.lendshelf.repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,9 +18,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     Optional<Reservation> findFirstByBookIdAndMemberIdAndStatus(Long bookId, Long memberId, ReservationStatus status);
 
-    List<Reservation> findByMemberIdAndStatusInOrderByCreatedAt(Long memberId, Collection<ReservationStatus> statuses);
+    List<Reservation> findByMemberIdAndStatusInOrderByCreatedAt(Long memberId, List<ReservationStatus> statuses);
 
-    boolean existsByBookIdAndMemberIdAndStatusIn(Long bookId, Long memberId, Collection<ReservationStatus> statuses);
+    boolean existsByBookIdAndMemberIdAndStatusIn(Long bookId, Long memberId, List<ReservationStatus> statuses);
 
     long countByBookIdAndStatus(Long bookId, ReservationStatus status);
 

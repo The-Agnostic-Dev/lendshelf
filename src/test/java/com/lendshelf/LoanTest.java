@@ -31,6 +31,14 @@ class LoanTest {
     }
 
     @Test
+    void countsFortyDaysPastDue() {
+        LocalDate reference = LocalDate.of(2026, 4, 24);
+        Loan loan = new Loan(new Copy(book, "X1"), member, reference.minusDays(50), reference.minusDays(40));
+        assertThat(loan.isOverdue(reference)).isTrue();
+        assertThat(loan.daysOverdue(reference)).isEqualTo(40);
+    }
+
+    @Test
     void returnedLoanStopsAccruing() {
         Loan loan = new Loan(new Copy(book, "X1"), member, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 15));
         loan.markReturned(LocalDate.of(2026, 3, 17), 0.30);

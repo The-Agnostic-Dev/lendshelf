@@ -21,6 +21,7 @@ import com.lendshelf.service.LoanService;
 import com.lendshelf.service.MemberService;
 import com.lendshelf.service.ReservationService;
 import com.lendshelf.repository.ReservationRepository;
+import com.lendshelf.repository.BookRepository;
 
 @SpringBootTest
 @Transactional
@@ -40,6 +41,9 @@ class LendingFlowTest {
 
     @Autowired
     ReservationRepository reservationRepository;
+
+    @Autowired
+    BookRepository books;
 
     private Book findBook(String title) {
         return catalog.search(title, 0).getContent().stream()
@@ -122,10 +126,17 @@ class LendingFlowTest {
 
     @Test
     void cancellingReservationRenumbersQueue() {
+        Book book = new Book();
+        book.setTitle("Queue Renumber Test Book");
+        book.setAuthor("Test Author");
+        book.setIsbn("9780000000001");
+        book.setPublicationYear(2023);
+        book.setCategory("Test");
+        books.save(book);
+
         Member first = members.register("First Reader", "first@example.com", null);
         Member second = members.register("Second Reader", "second@example.com", null);
         Member third = members.register("Third Reader", "third@example.com", null);
-        Book book = findBook("Half of a Yellow Sun");
 
         var r1 = reservations.reserve(first.getId(), book.getId());
         var r2 = reservations.reserve(second.getId(), book.getId());
@@ -134,38 +145,40 @@ class LendingFlowTest {
         reservations.cancel(r1.getId());
 
         var waitingAfterFirstCancel = reservations.findByBook(book.getId());
+        assertThat(waitingAfterFirstCancel).hasSize(2);
         assertThat(waitingAfterFirstCancel)
-            .filteredOn(r -> r.getId().equals(r2.getId()) || r.getId().equals(r3.getId()))
-            .hasSize(2);
-        assertThat(waitingAfterFirstCancel)
-            .filteredOn(r -> r.getId().equals(r2.getId()))
-            .singleElement()
             .extracting(Reservation::getQueuePosition)
-            .isEqualTo(1);
+            .containsExactly(1, 2);
         assertThat(waitingAfterFirstCancel)
-            .filteredOn(r -> r.getId().equals(r3.getId()))
-            .singleElement()
-            .extracting(Reservation::getQueuePosition)
-            .isEqualTo(2);
+            .extracting(Reservation::getId)
+            .containsExactly(r2.getId(), r3.getId());
 
         reservations.cancel(r2.getId());
 
         var waitingAfterSecondCancel = reservations.findByBook(book.getId());
+        assertThat(waitingAfterSecondCancel).hasSize(1);
         assertThat(waitingAfterSecondCancel)
-            .filteredOn(r -> r.getId().equals(r3.getId()))
-            .hasSize(1);
-        assertThat(waitingAfterSecondCancel)
-            .filteredOn(r -> r.getId().equals(r3.getId()))
             .singleElement()
             .extracting(Reservation::getQueuePosition)
             .isEqualTo(1);
+        assertThat(waitingAfterSecondCancel)
+            .singleElement()
+            .extracting(Reservation::getId)
+            .isEqualTo(r3.getId());
     }
 
     @Test
     void cancellingEarlierReservationMovesNextUp() {
+        Book book = new Book();
+        book.setTitle("Queue Move Up Test Book");
+        book.setAuthor("Test Author");
+        book.setIsbn("9780000000002");
+        book.setPublicationYear(2023);
+        book.setCategory("Test");
+        books.save(book);
+
         Member first = members.register("First Reader", "first@example.com", null);
         Member second = members.register("Second Reader", "second@example.com", null);
-        Book book = findBook("Half of a Yellow Sun");
 
         var r1 = reservations.reserve(first.getId(), book.getId());
         var r2 = reservations.reserve(second.getId(), book.getId());
@@ -173,14 +186,15 @@ class LendingFlowTest {
         reservations.cancel(r1.getId());
 
         var waiting = reservations.findByBook(book.getId());
+        assertThat(waiting).hasSize(1);
         assertThat(waiting)
-            .filteredOn(r -> r.getId().equals(r2.getId()))
-            .hasSize(1);
-        assertThat(waiting)
-            .filteredOn(r -> r.getId().equals(r2.getId()))
             .singleElement()
             .extracting(Reservation::getQueuePosition)
             .isEqualTo(1);
+        assertThat(waiting)
+            .singleElement()
+            .extracting(Reservation::getId)
+            .isEqualTo(r2.getId());
     }
 
     @Test
@@ -220,9 +234,16 @@ class LendingFlowTest {
 
     @Test
     void findByBookReturnsSequentialPositionsIgnoringStoredQueuePositions() {
+        Book book = new Book();
+        book.setTitle("Sequential Positions Test Book");
+        book.setAuthor("Test Author");
+        book.setIsbn("9780000000003");
+        book.setPublicationYear(2023);
+        book.setCategory("Test");
+        books.save(book);
+
         Member first = members.register("Stale First", "stale1@example.com", null);
         Member second = members.register("Stale Second", "stale2@example.com", null);
-        Book book = findBook("Half of a Yellow Sun");
 
         var r1 = reservations.reserve(first.getId(), book.getId());
         var r2 = reservations.reserve(second.getId(), book.getId());
@@ -234,15 +255,11 @@ class LendingFlowTest {
         reservationRepository.save(r2);
 
         var waiting = reservations.findByBook(book.getId());
+        assertThat(waiting).hasSize(2);
         assertThat(waiting)
-            .filteredOn(r -> r.getId().equals(r1.getId()) || r.getId().equals(r2.getId()))
-            .hasSize(2);
-        assertThat(waiting)
-            .filteredOn(r -> r.getId().equals(r1.getId()) || r.getId().equals(r2.getId()))
             .extracting(Reservation::getQueuePosition)
             .containsExactly(1, 2);
         assertThat(waiting)
-            .filteredOn(r -> r.getId().equals(r1.getId()) || r.getId().equals(r2.getId()))
             .extracting(Reservation::getId)
             .containsExactly(r1.getId(), r2.getId());
     }

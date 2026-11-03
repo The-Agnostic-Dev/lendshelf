@@ -72,9 +72,9 @@ public class ReservationService {
                 reservation.getBook().getId(), ReservationStatus.WAITING));
         remaining.addAll(reservations.findByBookIdAndStatusOrderByCreatedAt(
                 reservation.getBook().getId(), ReservationStatus.READY));
-        remaining.sort((a, b) -> Integer.compare(a.getPosition(), b.getPosition()));
+        remaining.sort((a, b) -> Integer.compare(a.getQueuePosition(), b.getQueuePosition()));
         for (int i = 0; i < remaining.size(); i++) {
-            remaining.get(i).setPosition(i + 1);
+            remaining.get(i).setQueuePosition(i + 1);
         }
         reservations.saveAll(remaining);
 

@@ -113,4 +113,28 @@ class LendingFlowTest {
 
         assertThat(loan.getCopy().getStatus()).isEqualTo(CopyStatus.ON_HOLD);
     }
+
+    @Test
+    void cancellingReservationRenumbersQueue() {
+        Member first = members.register("First Reader", "first@example.com", null);
+        Member second = members.register("Second Reader", "second@example.com", null);
+        Member third = members.register("Third Reader", "third@example.com", null);
+        Book book = findBook("Half of a Yellow Sun");
+
+        var r1 = reservations.reserve(first.getId(), book.getId());
+        var r2 = reservations.reserve(second.getId(), book.getId());
+        var r3 = reservations.reserve(third.getId(), book.getId());
+
+        reservations.cancel(r1.getId());
+
+        var remaining = reservations.findByBook(book.getId());
+        assertThat(remaining).hasSize(2);
+        assertThat(remaining).extracting(r -> r.getQueuePosition()).containsExactly(1, 2);
+
+        reservations.cancel(r2.getId());
+
+        remaining = reservations.findByBook(book.getId());
+        assertThat(remaining).hasSize(1);
+        assertThat(remaining).extracting(r -> r.getQueuePosition()).containsExactly(1);
+    }
 }

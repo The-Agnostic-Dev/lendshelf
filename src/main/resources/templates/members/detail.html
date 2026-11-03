@@ -44,7 +44,7 @@
         <li th:each="r : ${reservations}">
             <strong th:text="${r.book.title}">Title</strong>
             <span th:if="${r.status.name() == 'READY'}" class="pill ok">Ready to collect</span>
-            <span th:if="${r.status.name() == 'WAITING'}" class="queue-position" th:text="|Number ${r.queuePosition} in the queue|">Number 1 in the queue</span>
+            <span th:if="${r.status.name() == 'WAITING'}" class="queue-position" th:text="|Number ${queuePositions[r.id]} in the queue|">Number 1 in the queue</span>
             <form method="post" class="inline" th:action="@{/reservations/{id}/cancel(id=${r.id})}">
                 <input type="hidden" name="memberId" th:value="${member.id}">
                 <button type="submit" class="link">Cancel</button>

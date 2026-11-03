@@ -28,16 +28,13 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private ReservationStatus status = ReservationStatus.WAITING;
 
-    private int queuePosition;
-
     protected Reservation() {
     }
 
-    public Reservation(Book book, Member member, LocalDateTime createdAt, int queuePosition) {
+    public Reservation(Book book, Member member, LocalDateTime createdAt) {
         this.book = book;
         this.member = member;
         this.createdAt = createdAt;
-        this.queuePosition = queuePosition;
     }
 
     public boolean isActive() {
@@ -66,9 +63,5 @@ public class Reservation {
 
     public void setStatus(ReservationStatus status) {
         this.status = status;
-    }
-
-    public int getQueuePosition() {
-        return queuePosition;
     }
 }

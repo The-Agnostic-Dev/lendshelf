@@ -11,9 +11,9 @@ import com.lendshelf.domain.ReservationStatus;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    List<Reservation> findByBookIdAndStatusOrderByCreatedAt(Long bookId, ReservationStatus status);
+    List<Reservation> findByBookIdAndStatusOrderByCreatedAtAscIdAsc(Long bookId, ReservationStatus status);
 
-    Optional<Reservation> findFirstByBookIdAndStatusOrderByCreatedAt(Long bookId, ReservationStatus status);
+    Optional<Reservation> findFirstByBookIdAndStatusOrderByCreatedAtAscIdAsc(Long bookId, ReservationStatus status);
 
     Optional<Reservation> findFirstByBookIdAndMemberIdAndStatus(Long bookId, Long memberId, ReservationStatus status);
 

@@ -2,8 +2,11 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -53,8 +56,7 @@ public class ReservationService {
             throw new LibraryException(member.getName() + " already has a reservation for " + book.getTitle() + ".");
         }
 
-        int position = (int) reservations.countByBookIdAndStatus(bookId, ReservationStatus.WAITING) + 1;
-        return reservations.save(new Reservation(book, member, LocalDateTime.now(clock), position));
+        return reservations.save(new Reservation(book, member, LocalDateTime.now(clock)));
     }
 
     public Reservation cancel(Long reservationId) {
@@ -81,7 +83,7 @@ public class ReservationService {
      */
     public void passOn(Copy copy) {
         Optional<Reservation> next = reservations
-                .findFirstByBookIdAndStatusOrderByCreatedAt(copy.getBook().getId(), ReservationStatus.WAITING);
+                .findFirstByBookIdAndStatusOrderByCreatedAtAscIdAsc(copy.getBook().getId(), ReservationStatus.WAITING);
         if (next.isPresent()) {
             next.get().setStatus(ReservationStatus.READY);
             copy.setStatus(CopyStatus.ON_HOLD);
@@ -104,7 +106,29 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> queueFor(Long bookId) {
-        return reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.WAITING);
+        return reservations.findByBookIdAndStatusOrderByCreatedAtAscIdAsc(bookId, ReservationStatus.WAITING);
+    }
+
+    /**
+     * Each waiting reservation's place in its book's queue, keyed by reservation id.
+     * The place is worked out from who is still waiting, in the order they reserved,
+     * so cancellations and hand-offs move everyone behind them up.
+     */
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> queuePositions(Collection<Reservation> forReservations) {
+        Map<Long, Integer> positions = new HashMap<>();
+        forReservations.stream()
+                .filter(r -> r.getStatus() == ReservationStatus.WAITING)
+                .map(r -> r.getBook().getId())
+                .distinct()
+                .forEach(bookId -> {
+                    List<Reservation> queue = queueFor(bookId);
+                    for (int i = 0; i < queue.size(); i++) {
+                        positions.put(queue.get(i).getId(), i + 1);
+                    }
+                });
+        positions.keySet().retainAll(forReservations.stream().map(Reservation::getId).toList());
+        return positions;
     }
 
     @Transactional(readOnly = true)

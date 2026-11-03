@@ -88,7 +88,9 @@ public class MemberController {
         model.addAttribute("member", member);
         model.addAttribute("currentLoans", current);
         model.addAttribute("pastLoans", past);
-        model.addAttribute("reservations", reservations.activeFor(id));
+        var active = reservations.activeFor(id);
+        model.addAttribute("reservations", active);
+        model.addAttribute("queuePositions", reservations.queuePositions(active));
         model.addAttribute("fees", feeByLoan);
         model.addAttribute("outstanding", outstanding);
         model.addAttribute("maxRenewals", properties.maxRenewals());

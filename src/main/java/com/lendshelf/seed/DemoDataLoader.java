@@ -126,8 +126,8 @@ public class DemoDataLoader implements SmartInitializingSingleton {
         open("Ifeoma Nwosu", "Half of a Yellow Sun", 1, today.minusDays(12));
         open("Ruth Wanjiru", "Matilda", 0, today.minusDays(1));
 
-        reserve("Kwame Asante", "Half of a Yellow Sun", 1, today.minusDays(6));
-        reserve("Ruth Wanjiru", "Half of a Yellow Sun", 2, today.minusDays(3));
+        reserve("Kwame Asante", "Half of a Yellow Sun", today.minusDays(6));
+        reserve("Ruth Wanjiru", "Half of a Yellow Sun", today.minusDays(3));
     }
 
     private void book(String title, String author, String isbn, int year, String genre, int copyCount) {
@@ -159,8 +159,8 @@ public class DemoDataLoader implements SmartInitializingSingleton {
         loans.save(loan);
     }
 
-    private void reserve(String memberName, String title, int position, LocalDate on) {
+    private void reserve(String memberName, String title, LocalDate on) {
         Book book = copiesByTitle.get(title).getFirst().getBook();
-        reservations.save(new Reservation(book, membersByName.get(memberName), on.atTime(10, 30), position));
+        reservations.save(new Reservation(book, membersByName.get(memberName), on.atTime(10, 30)));
     }
 }

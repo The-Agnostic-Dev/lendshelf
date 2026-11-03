@@ -115,22 +115,30 @@ public class ReservationService {
     }
 
     private void applyQueuePositions(List<Reservation> reservations) {
-        Map<Long, List<Reservation>> byBook = reservations.stream()
-                .filter(r -> r.getStatus() == ReservationStatus.WAITING)
-                .collect(Collectors.groupingBy(r -> r.getBook().getId()));
+        Set<Long> bookIds = reservations.stream()
+                .map(r -> r.getBook().getId())
+                .collect(Collectors.toSet());
+
+        Map<Long, List<Reservation>> waitingByBook = bookIds.stream()
+                .collect(Collectors.toMap(
+                        bookId -> bookId,
+                        bookId -> this.reservations.findByBookIdAndStatusOrderByIdAsc(bookId, ReservationStatus.WAITING)));
 
         for (Reservation reservation : reservations) {
-            if (reservation.getStatus() != ReservationStatus.WAITING) {
+            if (reservation.getStatus() == ReservationStatus.WAITING) {
+                List<Reservation> waiting = waitingByBook.get(reservation.getBook().getId());
+                int position = 0;
+                for (int i = 0; i < waiting.size(); i++) {
+                    if (waiting.get(i).getId().equals(reservation.getId())) {
+                        position = i + 1;
+                        break;
+                    }
+                }
+                reservation.setQueuePosition(position);
+            } else {
                 reservation.setQueuePosition(0);
             }
         }
-
-        byBook.values().forEach(waiting -> {
-            waiting.sort(Comparator.comparing(Reservation::getId));
-            for (int i = 0; i < waiting.size(); i++) {
-                waiting.get(i).setQueuePosition(i + 1);
-            }
-        });
     }
 
     @Transactional(readOnly = true)

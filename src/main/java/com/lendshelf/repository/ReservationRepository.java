@@ -15,6 +15,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByBookIdAndStatusOrderByIdAsc(Long bookId, ReservationStatus status);
 
+    List<Reservation> findByBookIdAndStatusInOrderByIdAsc(Long bookId, Collection<ReservationStatus> statuses);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Reservation> findFirstByBookIdAndStatusOrderByIdAsc(Long bookId, ReservationStatus status);
 

@@ -35,11 +35,10 @@ public class Reservation {
     protected Reservation() {
     }
 
-    public Reservation(Book book, Member member, LocalDateTime createdAt, int queuePosition) {
+    public Reservation(Book book, Member member, LocalDateTime createdAt) {
         this.book = book;
         this.member = member;
         this.createdAt = createdAt;
-        this.queuePosition = queuePosition;
     }
 
     public boolean isActive() {

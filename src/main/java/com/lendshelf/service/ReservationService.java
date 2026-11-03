@@ -109,7 +109,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> queueFor(Long bookId) {
-        List<Reservation> queue = reservations.findByBookIdAndStatusOrderByIdAsc(bookId, ReservationStatus.WAITING);
+        List<Reservation> queue = reservations.findByBookIdAndStatusInOrderByIdAsc(bookId, ACTIVE);
         applyQueuePositions(queue);
         return queue;
     }

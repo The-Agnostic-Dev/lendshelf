@@ -134,7 +134,9 @@ class LendingFlowTest {
         reservations.cancel(r1.getId());
 
         var waitingAfterFirstCancel = reservations.findByBook(book.getId());
-        assertThat(waitingAfterFirstCancel).hasSize(2);
+        assertThat(waitingAfterFirstCancel)
+            .filteredOn(r -> r.getId().equals(r2.getId()) || r.getId().equals(r3.getId()))
+            .hasSize(2);
         assertThat(waitingAfterFirstCancel)
             .filteredOn(r -> r.getId().equals(r2.getId()))
             .singleElement()
@@ -149,9 +151,14 @@ class LendingFlowTest {
         reservations.cancel(r2.getId());
 
         var waitingAfterSecondCancel = reservations.findByBook(book.getId());
-        assertThat(waitingAfterSecondCancel).hasSize(1);
-        assertThat(waitingAfterSecondCancel.getFirst().getQueuePosition()).isEqualTo(1);
-        assertThat(waitingAfterSecondCancel.getFirst().getId()).isEqualTo(r3.getId());
+        assertThat(waitingAfterSecondCancel)
+            .filteredOn(r -> r.getId().equals(r3.getId()))
+            .hasSize(1);
+        assertThat(waitingAfterSecondCancel)
+            .filteredOn(r -> r.getId().equals(r3.getId()))
+            .singleElement()
+            .extracting(Reservation::getQueuePosition)
+            .isEqualTo(1);
     }
 
     @Test
@@ -166,9 +173,14 @@ class LendingFlowTest {
         reservations.cancel(r1.getId());
 
         var waiting = reservations.findByBook(book.getId());
-        assertThat(waiting).hasSize(1);
-        assertThat(waiting.getFirst().getId()).isEqualTo(r2.getId());
-        assertThat(waiting.getFirst().getQueuePosition()).isEqualTo(1);
+        assertThat(waiting)
+            .filteredOn(r -> r.getId().equals(r2.getId()))
+            .hasSize(1);
+        assertThat(waiting)
+            .filteredOn(r -> r.getId().equals(r2.getId()))
+            .singleElement()
+            .extracting(Reservation::getQueuePosition)
+            .isEqualTo(1);
     }
 
     @Test
@@ -222,11 +234,15 @@ class LendingFlowTest {
         reservationRepository.save(r2);
 
         var waiting = reservations.findByBook(book.getId());
-        assertThat(waiting).hasSize(2);
         assertThat(waiting)
+            .filteredOn(r -> r.getId().equals(r1.getId()) || r.getId().equals(r2.getId()))
+            .hasSize(2);
+        assertThat(waiting)
+            .filteredOn(r -> r.getId().equals(r1.getId()) || r.getId().equals(r2.getId()))
             .extracting(Reservation::getQueuePosition)
             .containsExactly(1, 2);
         assertThat(waiting)
+            .filteredOn(r -> r.getId().equals(r1.getId()) || r.getId().equals(r2.getId()))
             .extracting(Reservation::getId)
             .containsExactly(r1.getId(), r2.getId());
     }

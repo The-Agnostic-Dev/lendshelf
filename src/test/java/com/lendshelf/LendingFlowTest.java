@@ -53,13 +53,8 @@ class LendingFlowTest {
     }
 
     private Book uniqueBook(String title) {
-        Book book = new Book();
         String unique = UUID.randomUUID().toString();
-        book.setTitle(title + " " + unique);
-        book.setAuthor("Test Author");
-        book.setIsbn("978" + unique.replace("-", "").substring(0, 10));
-        book.setPublicationYear(2023);
-        book.setCategory("Test");
+        Book book = new Book(title + " " + unique, "Test Author", "978" + unique.replace("-", "").substring(0, 10), 2023, "Test");
         return books.save(book);
     }
 

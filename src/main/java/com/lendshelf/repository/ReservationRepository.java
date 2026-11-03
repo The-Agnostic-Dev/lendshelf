@@ -13,7 +13,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByBookIdAndStatusOrderByCreatedAt(Long bookId, ReservationStatus status);
 
-    List<Reservation> findByBookIdAndStatusOrderByIdAsc(Long bookId, ReservationStatus status);
+    List<Reservation> findByBookIdAndStatusOrderByReservedAtAscIdAsc(Long bookId, ReservationStatus status);
 
 
     Optional<Reservation> findFirstByBookIdAndStatusOrderByCreatedAt(Long bookId, ReservationStatus status);

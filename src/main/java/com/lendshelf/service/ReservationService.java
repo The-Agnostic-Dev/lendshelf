@@ -53,8 +53,11 @@ public class ReservationService {
             throw new LibraryException(member.getName() + " already has a reservation for " + book.getTitle() + ".");
         }
 
+        LocalDateTime now = LocalDateTime.now(clock);
         int position = (int) reservations.countByBookIdAndStatus(bookId, ReservationStatus.WAITING) + 1;
-        return reservations.save(new Reservation(book, member, LocalDateTime.now(clock), position));
+        Reservation reservation = new Reservation(book, member, now, position);
+        reservation.setReservedAt(now);
+        return reservations.save(reservation);
     }
 
     public Reservation cancel(Long reservationId) {
@@ -126,7 +129,7 @@ public class ReservationService {
     }
 
     private List<Reservation> orderedWaiting(Long bookId) {
-        return reservations.findByBookIdAndStatusOrderByIdAsc(bookId, ReservationStatus.WAITING);
+        return reservations.findByBookIdAndStatusOrderByReservedAtAscIdAsc(bookId, ReservationStatus.WAITING);
     }
 
     private List<Reservation> waitingQueue(Long bookId) {

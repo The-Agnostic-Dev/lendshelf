@@ -230,4 +230,32 @@ class LendingFlowTest {
             .extracting(Reservation::getId)
             .containsExactly(r1.getId(), r2.getId());
     }
+
+    @Test
+    void passOnMovesEveryoneBehindUp() {
+        Member borrower = members.register("Borrower " + UUID.randomUUID(), "borrower-" + UUID.randomUUID() + "@example.com", null);
+        Book book = findBook("A Brief History of Time");
+        Loan loan = loans.borrow(borrower.getId(), book.getId());
+
+        Member firstWaiter = members.register("Waiter1 " + UUID.randomUUID(), "waiter1-" + UUID.randomUUID() + "@example.com", null);
+        Member secondWaiter = members.register("Waiter2 " + UUID.randomUUID(), "waiter2-" + UUID.randomUUID() + "@example.com", null);
+        Member thirdWaiter = members.register("Waiter3 " + UUID.randomUUID(), "waiter3-" + UUID.randomUUID() + "@example.com", null);
+
+        var r1 = reservations.reserve(firstWaiter.getId(), book.getId());
+        var r2 = reservations.reserve(secondWaiter.getId(), book.getId());
+        var r3 = reservations.reserve(thirdWaiter.getId(), book.getId());
+
+        loans.returnLoan(loan.getId());
+
+        var waiting = reservations.findByBook(book.getId());
+        assertThat(waiting)
+            .hasSize(2)
+            .noneMatch(r -> r.getId().equals(r1.getId()))
+            .allMatch(r -> r.getStatus() == ReservationStatus.WAITING)
+            .extracting(r -> r.getQueuePosition())
+            .containsExactly(1, 2);
+        assertThat(waiting)
+            .extracting(Reservation::getId)
+            .containsExactly(r2.getId(), r3.getId());
+    }
 }

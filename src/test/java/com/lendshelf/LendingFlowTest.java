@@ -52,6 +52,17 @@ class LendingFlowTest {
                 .orElseThrow();
     }
 
+    private Book uniqueBook(String title) {
+        Book book = new Book();
+        String unique = UUID.randomUUID().toString();
+        book.setTitle(title + " " + unique);
+        book.setAuthor("Test Author");
+        book.setIsbn("978" + unique.replace("-", "").substring(0, 10));
+        book.setPublicationYear(2023);
+        book.setCategory("Test");
+        return books.save(book);
+    }
+
     @Test
     void catalogueIsSortedByTitle() {
         var first = catalog.search("", 0).getContent();
@@ -126,13 +137,7 @@ class LendingFlowTest {
 
     @Test
     void cancellingReservationRenumbersQueue() {
-        Book book = new Book();
-        book.setTitle("Queue Renumber Test Book");
-        book.setAuthor("Test Author");
-        book.setIsbn("9780000000001");
-        book.setPublicationYear(2023);
-        book.setCategory("Test");
-        books.save(book);
+        Book book = uniqueBook("Queue Renumber Test Book");
 
         Member first = members.register("First Reader", "first@example.com", null);
         Member second = members.register("Second Reader", "second@example.com", null);
@@ -169,13 +174,7 @@ class LendingFlowTest {
 
     @Test
     void cancellingEarlierReservationMovesNextUp() {
-        Book book = new Book();
-        book.setTitle("Queue Move Up Test Book");
-        book.setAuthor("Test Author");
-        book.setIsbn("9780000000002");
-        book.setPublicationYear(2023);
-        book.setCategory("Test");
-        books.save(book);
+        Book book = uniqueBook("Queue Move Up Test Book");
 
         Member first = members.register("First Reader", "first@example.com", null);
         Member second = members.register("Second Reader", "second@example.com", null);
@@ -234,13 +233,7 @@ class LendingFlowTest {
 
     @Test
     void findByBookReturnsSequentialPositionsIgnoringStoredQueuePositions() {
-        Book book = new Book();
-        book.setTitle("Sequential Positions Test Book");
-        book.setAuthor("Test Author");
-        book.setIsbn("9780000000003");
-        book.setPublicationYear(2023);
-        book.setCategory("Test");
-        books.save(book);
+        Book book = uniqueBook("Sequential Positions Test Book");
 
         Member first = members.register("Stale First", "stale1@example.com", null);
         Member second = members.register("Stale Second", "stale2@example.com", null);

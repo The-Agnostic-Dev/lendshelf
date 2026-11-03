@@ -2,7 +2,6 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -101,7 +100,19 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> activeFor(Long memberId) {
-        return reservations.findByMemberIdAndStatusInOrderByCreatedAt(memberId, ACTIVE);
+        List<Reservation> active = reservations.findByMemberIdAndStatusInOrderByCreatedAt(memberId, ACTIVE);
+        for (Reservation reservation : active) {
+            if (reservation.getStatus() == ReservationStatus.WAITING) {
+                List<Reservation> waiting = orderedWaiting(reservation.getBook().getId());
+                for (int i = 0; i < waiting.size(); i++) {
+                    if (waiting.get(i).getId().equals(reservation.getId())) {
+                        reservation.setQueuePosition(i + 1);
+                        break;
+                    }
+                }
+            }
+        }
+        return active;
     }
 
     @Transactional(readOnly = true)
@@ -115,10 +126,7 @@ public class ReservationService {
     }
 
     private List<Reservation> orderedWaiting(Long bookId) {
-        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.WAITING);
-        waiting.sort(Comparator.comparing(Reservation::getReservedAt)
-                .thenComparing(Reservation::getId));
-        return waiting;
+        return reservations.findByBookIdAndStatusOrderByIdAsc(bookId, ReservationStatus.WAITING);
     }
 
     private List<Reservation> waitingQueue(Long bookId) {

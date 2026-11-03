@@ -2,8 +2,6 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -124,12 +122,7 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> findByBook(Long bookId) {
-        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.WAITING);
-        List<Reservation> ready = reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.READY);
-        List<Reservation> all = new ArrayList<>(waiting);
-        all.addAll(ready);
-        all.sort(Comparator.comparingInt(Reservation::getQueuePosition));
-        return all;
+        return reservations.findByBookIdAndStatusOrderByQueuePositionAsc(bookId, ReservationStatus.WAITING);
     }
 
     @Transactional(readOnly = true)

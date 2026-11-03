@@ -13,6 +13,7 @@ import com.lendshelf.domain.CopyStatus;
 import com.lendshelf.domain.Loan;
 import com.lendshelf.domain.Member;
 import com.lendshelf.domain.ReservationStatus;
+import java.util.UUID;
 import com.lendshelf.service.CatalogService;
 import com.lendshelf.service.LibraryException;
 import com.lendshelf.service.LoanService;
@@ -151,5 +152,69 @@ class LendingFlowTest {
         reservations.cancel(r1.getId());
 
         assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(3);
+    }
+
+    @Test
+    void cancellingFirstWaitingAfterReadyExcludesReadyAndRenumbersWaiting() {
+        Book book = null;
+        Reservation dummy = null;
+        Member dummyMember = null;
+        int page = 0;
+        while (true) {
+            var pageContent = catalog.search("", page).getContent();
+            if (pageContent.isEmpty()) break;
+            for (Book candidate : pageContent) {
+                if (!reservations.findByBook(candidate.getId()).isEmpty()) continue;
+                Member m = members.register("Dummy " + UUID.randomUUID(), "dummy-" + UUID.randomUUID() + "@example.com", null);
+                try {
+                    dummy = reservations.reserve(m.getId(), candidate.getId());
+                    book = candidate;
+                    dummyMember = m;
+                    break;
+                } catch (LibraryException e) {
+                    // not all out, try next candidate
+                }
+            }
+            if (book != null) break;
+            page++;
+        }
+        assertThat(book).isNotNull();
+
+        Member new1Member = members.register("New1 " + UUID.randomUUID(), "new1-" + UUID.randomUUID() + "@example.com", null);
+        Member new2Member = members.register("New2 " + UUID.randomUUID(), "new2-" + UUID.randomUUID() + "@example.com", null);
+        Member new3Member = members.register("New3 " + UUID.randomUUID(), "new3-" + UUID.randomUUID() + "@example.com", null);
+        var new1 = reservations.reserve(new1Member.getId(), book.getId());
+        var new2 = reservations.reserve(new2Member.getId(), book.getId());
+        var new3 = reservations.reserve(new3Member.getId(), book.getId());
+
+        Loan loanToReturn = null;
+        for (Member member : members.all()) {
+            for (Loan loan : loans.currentLoans(member.getId())) {
+                if (loan.getCopy().getBook().getId().equals(book.getId())) {
+                    loanToReturn = loan;
+                    break;
+                }
+            }
+            if (loanToReturn != null) break;
+        }
+        assertThat(loanToReturn).isNotNull();
+
+        loans.returnLoan(loanToReturn.getId());
+
+        reservations.cancel(new1.getId());
+
+        var waitingAfterCancel = reservations.findByBook(book.getId());
+        assertThat(waitingAfterCancel)
+            .noneMatch(r -> r.getId().equals(dummy.getId()))
+            .allMatch(r -> r.getStatus() == ReservationStatus.WAITING)
+            .hasSize(2);
+        assertThat(waitingAfterCancel)
+            .extracting(r -> r.getQueuePosition())
+            .containsExactlyInAnyOrder(1, 2);
+
+        var new2After = reservationRepository.findById(new2.getId()).orElseThrow();
+        var new3After = reservationRepository.findById(new3.getId()).orElseThrow();
+        assertThat(new2After.getQueuePosition()).isEqualTo(1);
+        assertThat(new3After.getQueuePosition()).isEqualTo(2);
     }
 }

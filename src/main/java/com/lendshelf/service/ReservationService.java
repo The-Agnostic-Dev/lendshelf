@@ -2,10 +2,13 @@ package com.lendshelf.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +84,7 @@ public class ReservationService {
      */
     public void passOn(Copy copy) {
         Optional<Reservation> next = reservations
-                .findFirstByBookIdAndStatusOrderByCreatedAt(copy.getBook().getId(), ReservationStatus.WAITING);
+                .findFirstByBookIdAndStatusOrderByIdAsc(copy.getBook().getId(), ReservationStatus.WAITING);
         if (next.isPresent()) {
             next.get().setStatus(ReservationStatus.READY);
             copy.setStatus(CopyStatus.ON_HOLD);
@@ -99,12 +102,35 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> activeFor(Long memberId) {
-        return reservations.findByMemberIdAndStatusInOrderByCreatedAt(memberId, ACTIVE);
+        List<Reservation> memberReservations = reservations.findByMemberIdAndStatusInOrderByIdAsc(memberId, ACTIVE);
+        applyQueuePositions(memberReservations);
+        return memberReservations;
     }
 
     @Transactional(readOnly = true)
     public List<Reservation> queueFor(Long bookId) {
-        return reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.WAITING);
+        List<Reservation> queue = reservations.findByBookIdAndStatusOrderByIdAsc(bookId, ReservationStatus.WAITING);
+        applyQueuePositions(queue);
+        return queue;
+    }
+
+    private void applyQueuePositions(List<Reservation> reservations) {
+        Map<Long, List<Reservation>> byBook = reservations.stream()
+                .filter(r -> r.getStatus() == ReservationStatus.WAITING)
+                .collect(Collectors.groupingBy(r -> r.getBook().getId()));
+
+        for (Reservation reservation : reservations) {
+            if (reservation.getStatus() != ReservationStatus.WAITING) {
+                reservation.setQueuePosition(0);
+            }
+        }
+
+        byBook.values().forEach(waiting -> {
+            waiting.sort(Comparator.comparing(Reservation::getId));
+            for (int i = 0; i < waiting.size(); i++) {
+                waiting.get(i).setQueuePosition(i + 1);
+            }
+        });
     }
 
     @Transactional(readOnly = true)

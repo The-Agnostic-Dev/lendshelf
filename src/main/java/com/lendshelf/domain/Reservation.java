@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
 
 @Entity
 public class Reservation {
@@ -28,6 +29,7 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private ReservationStatus status = ReservationStatus.WAITING;
 
+    @Transient
     private int queuePosition;
 
     protected Reservation() {
@@ -70,5 +72,9 @@ public class Reservation {
 
     public int getQueuePosition() {
         return queuePosition;
+    }
+
+    public void setQueuePosition(int queuePosition) {
+        this.queuePosition = queuePosition;
     }
 }

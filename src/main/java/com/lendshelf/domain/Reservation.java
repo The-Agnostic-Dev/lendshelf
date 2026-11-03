@@ -25,6 +25,7 @@ public class Reservation {
     private Member member;
 
     private LocalDateTime createdAt;
+    private LocalDateTime reservedAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     private ReservationStatus status = ReservationStatus.WAITING;
@@ -60,6 +61,14 @@ public class Reservation {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public LocalDateTime getReservedAt() {
+        return reservedAt;
+    }
+
+    public void setReservedAt(LocalDateTime reservedAt) {
+        this.reservedAt = reservedAt;
     }
 
     public ReservationStatus getStatus() {

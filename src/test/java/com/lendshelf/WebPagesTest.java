@@ -19,6 +19,11 @@ import com.lendshelf.domain.Member;
 import com.lendshelf.service.CatalogService;
 import com.lendshelf.service.MemberService;
 import com.lendshelf.service.ReservationService;
+import org.springframework.mock.web.MockHttpSession;
+import com.lendshelf.repository.LoanRepository;
+import com.lendshelf.domain.Loan;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -36,6 +41,9 @@ class WebPagesTest {
 
     @Autowired
     ReservationService reservations;
+
+    @Autowired
+    LoanRepository loans;
 
     @Test
     void catalogueRenders() throws Exception {
@@ -86,5 +94,32 @@ class WebPagesTest {
         mvc.perform(get("/members/" + me.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Number 3 in the queue")));
+    }
+
+    @Test
+    void deskSessionsStaySeparate() throws Exception {
+        List<Member> allMembers = members.all();
+        Member adaeze = allMembers.get(0);
+        Member tunde = allMembers.get(1);
+
+        Book book = catalog.search("Things Fall Apart", 0).getContent().get(0);
+        String barcode = catalog.copiesOf(book.getId()).get(0).getBarcode();
+
+        MockHttpSession deskA = new MockHttpSession();
+        MockHttpSession deskB = new MockHttpSession();
+
+        mvc.perform(post("/desk/select-member").session(deskA).param("cardNumber", adaeze.getCardNumber()))
+                .andExpect(status().is3xxRedirection());
+        mvc.perform(post("/desk/select-member").session(deskB).param("cardNumber", tunde.getCardNumber()))
+                .andExpect(status().is3xxRedirection());
+
+        mvc.perform(post("/desk/checkout").session(deskA).param("barcode", barcode))
+                .andExpect(status().is3xxRedirection());
+
+        mvc.perform(get("/desk").session(deskA))
+                .andExpect(content().string(Matchers.containsString("Serving " + adaeze.getName())));
+
+        assertTrue(loans.findAll().stream()
+                .anyMatch(loan -> loan.getMember().getId().equals(adaeze.getId())));
     }
 }

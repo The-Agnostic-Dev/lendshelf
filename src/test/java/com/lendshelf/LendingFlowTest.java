@@ -131,12 +131,12 @@ class LendingFlowTest {
 
         reservations.cancel(r1.getId());
 
-        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(1);
-        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(2);
+        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(3);
+        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(4);
 
         reservations.cancel(r2.getId());
 
-        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(1);
+        assertThat(reservationRepository.findById(r3.getId()).orElseThrow().getQueuePosition()).isEqualTo(3);
     }
 
     @Test
@@ -150,6 +150,6 @@ class LendingFlowTest {
 
         reservations.cancel(r1.getId());
 
-        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(1);
+        assertThat(reservationRepository.findById(r2.getId()).orElseThrow().getQueuePosition()).isEqualTo(3);
     }
 }

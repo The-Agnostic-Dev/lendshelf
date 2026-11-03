@@ -134,4 +134,18 @@ class LendingFlowTest {
 
         assertThat(r3.getQueuePosition()).isEqualTo(1);
     }
+
+    @Test
+    void cancellingEarlierReservationMovesNextUp() {
+        Member first = members.register("First Reader", "first@example.com", null);
+        Member second = members.register("Second Reader", "second@example.com", null);
+        Book book = findBook("Half of a Yellow Sun");
+
+        var r1 = reservations.reserve(first.getId(), book.getId());
+        var r2 = reservations.reserve(second.getId(), book.getId());
+
+        reservations.cancel(r1.getId());
+
+        assertThat(r2.getQueuePosition()).isEqualTo(1);
+    }
 }

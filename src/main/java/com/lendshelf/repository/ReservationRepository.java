@@ -15,6 +15,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByBookIdAndStatusNotOrderByQueuePosition(Long bookId, ReservationStatus status);
 
+    List<Reservation> findByBookIdAndStatusNotOrderByQueuePositionAsc(Long bookId, ReservationStatus status);
+
     Optional<Reservation> findFirstByBookIdAndStatusOrderByCreatedAt(Long bookId, ReservationStatus status);
 
     Optional<Reservation> findFirstByBookIdAndMemberIdAndStatus(Long bookId, Long memberId, ReservationStatus status);

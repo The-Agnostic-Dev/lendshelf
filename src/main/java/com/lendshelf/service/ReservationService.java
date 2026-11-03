@@ -26,7 +26,7 @@ import com.lendshelf.repository.ReservationRepository;
 @Transactional
 public class ReservationService {
 
-    private static final Set<ReservationStatus> ACTIVE = EnumSet.of(ReservationStatus.WAITING, ReservationStatus.READY);
+    private static final List<ReservationStatus> ACTIVE = List.of(ReservationStatus.WAITING, ReservationStatus.READY);
 
     private final ReservationRepository reservations;
     private final BookRepository books;

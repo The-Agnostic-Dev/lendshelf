@@ -71,4 +71,8 @@ public class Reservation {
     public int getQueuePosition() {
         return queuePosition;
     }
+
+    public void setQueuePosition(int queuePosition) {
+        this.queuePosition = queuePosition;
+    }
 }

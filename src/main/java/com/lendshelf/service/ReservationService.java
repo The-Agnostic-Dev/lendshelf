@@ -83,10 +83,9 @@ public class ReservationService {
      * back on the shelf.
      */
     public void passOn(Copy copy) {
-        Optional<Reservation> next = reservations
-                .findFirstByBookIdAndStatusOrderByCreatedAt(copy.getBook().getId(), ReservationStatus.WAITING);
-        if (next.isPresent()) {
-            next.get().setStatus(ReservationStatus.READY);
+        List<Reservation> waiting = orderedWaiting(copy.getBook().getId());
+        if (!waiting.isEmpty()) {
+            waiting.get(0).setStatus(ReservationStatus.READY);
             copy.setStatus(CopyStatus.ON_HOLD);
         } else {
             copy.setStatus(CopyStatus.AVAILABLE);
@@ -107,15 +106,23 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<Reservation> queueFor(Long bookId) {
-        return reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.WAITING);
+        return waitingQueue(bookId);
     }
 
     @Transactional(readOnly = true)
     public List<Reservation> findByBook(Long bookId) {
-        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(
-                bookId, ReservationStatus.WAITING);
-        waiting.sort(Comparator.comparing(Reservation::getCreatedAt)
+        return waitingQueue(bookId);
+    }
+
+    private List<Reservation> orderedWaiting(Long bookId) {
+        List<Reservation> waiting = reservations.findByBookIdAndStatusOrderByCreatedAt(bookId, ReservationStatus.WAITING);
+        waiting.sort(Comparator.comparing(Reservation::getReservedAt)
                 .thenComparing(Reservation::getId));
+        return waiting;
+    }
+
+    private List<Reservation> waitingQueue(Long bookId) {
+        List<Reservation> waiting = orderedWaiting(bookId);
         for (int i = 0; i < waiting.size(); i++) {
             waiting.get(i).setQueuePosition(i + 1);
         }

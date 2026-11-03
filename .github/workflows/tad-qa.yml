@@ -1,5 +1,5 @@
 # Added by TAD (The Agnostic Dev). Checks TAD's pull requests before
-# TAD reviews them: install, build, tests.
+# TAD reviews them: build and tests.
 # Runs only on TAD's branches (tad/...). Optional: add a repository secret
 # TAD_QA_ENV with the .env lines this app needs to build and start.
 name: TAD QA

@@ -15,6 +15,7 @@
 
     <p class="muted" id="result-count">
         <span th:text="|${totalTitles} titles|">0 titles</span>
+        <span th:if="${!#strings.isEmpty(q)}" th:text="|matching &quot;${q}&quot;|"></span>
     </p>
 
     <table class="grid" th:if="${page.hasContent()}">

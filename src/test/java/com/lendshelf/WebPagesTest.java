@@ -41,7 +41,7 @@ class WebPagesTest {
         mvc.perform(get("/books").param("q", "Austen"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("3 of 34 titles")))
-                .andExpect(content().string(Matchers.containsString("matching \"Austen\"")));
+                .andExpect(content().string(Matchers.containsString("matching &quot;Austen&quot;")));
     }
 
     @Test

@@ -40,7 +40,8 @@ class WebPagesTest {
     void catalogueShowsTotalTitleCountWhenSearching() throws Exception {
         mvc.perform(get("/books").param("q", "Austen"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString("34 titles")));
+                .andExpect(content().string(Matchers.containsString("3 of 34 titles")))
+                .andExpect(content().string(Matchers.containsString("matching \"Austen\"")));
     }
 
     @Test

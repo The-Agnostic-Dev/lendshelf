@@ -14,7 +14,7 @@
     </form>
 
     <p class="muted" id="result-count">
-        <span th:text="${page.numberOfElements}">0</span> titles
+        <span th:text="${page.totalElements}">0</span> titles
         <span th:if="${!#strings.isEmpty(q)}" th:text="|matching &quot;${q}&quot;|"></span>
     </p>
 

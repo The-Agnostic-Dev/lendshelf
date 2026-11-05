@@ -30,6 +30,15 @@ class WebPagesTest {
     }
 
     @Test
+    void catalogueShowsTotalTitleCountAcrossPages() throws Exception {
+        mvc.perform(get("/books"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(Matchers.containsString("34 titles")))
+                .andExpect(content().string(Matchers.not(Matchers.containsString("10 titles"))))
+                .andExpect(content().string(Matchers.containsString("?page=1")));
+    }
+
+    @Test
     void dashboardListsOverdueLoans() throws Exception {
         mvc.perform(get("/librarian"))
                 .andExpect(status().isOk())
